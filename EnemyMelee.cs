@@ -12,6 +12,9 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 	//private int currentAiPointNumber; // A precaution
 	private float waitTimer = 1.0f; // A precaution
 
+	//Timer that dictates how long the AI should head towards a node before returning its attention to the player.
+	public float nodeTimer = 0.5f;
+	private float nodeTimerCurrent;
 
 	// These are Nav Mesh Agents variables
 	public float speed = 10.0f;
@@ -25,6 +28,8 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 	{
 		aiPoints = GameObject.FindGameObjectsWithTag("AiPoint");	// Making sure the enemy class knows where the player and AI Points are
 		player = GameObject.FindGameObjectWithTag("Player");
+
+		nodeTimerCurrent = nodeTimer;
 		
 		audio = transform.gameObject.GetComponent<EnemyAudio>()as EnemyAudio;
 	}
@@ -34,6 +39,15 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		if (waitTimer < 0.0f)
 		{
 			waitTimer = 0.0f;
+		}
+
+		if (!chasingPlayer)
+		{
+			nodeTimerCurrent -= Time.deltaTime;
+			if (nodeTimerCurrent <= 0)
+			{
+				chasingPlayer = true;
+			}
 		}
 	
 		GameObject targetObject = aiPoints[random]; // Select one of the ai points for the nav mesh to navigate towards
@@ -85,6 +99,8 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 			FindAnotherAiPoint(); 		// if enemies collide, make them both find another waypoint
 			//Debug.Log ("repath!!!");
 			chasingPlayer = false;
+
+			nodeTimerCurrent = nodeTimer;
 			
 			// MAKE A NOISE!!!
 			audio.Melee();
