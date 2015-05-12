@@ -9,3 +9,4 @@ public class Visibility : MonoBehaviour
 		gameObject.GetComponent<MeshRenderer>().enabled = false;
 	}
 }
+// Hi sam
