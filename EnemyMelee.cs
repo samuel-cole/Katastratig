@@ -11,9 +11,48 @@ public enum AIStates
 public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through the tag 'AI_Point' assigned in the inspector
 {
 
-	private GameObject player; // Find the player
+	private Transform player; // Find the player
+
+	private NavMeshAgent agent; //The AI of this enemy
+
+	public Material attackMaterial;
+	public Material standardMaterial;
+	private Renderer renderer;
+
 	//This stores the current action that the AI should be taking.
-	public AIStates state = AIStates.CHASING; // Set this to true when Player class is created
+	private AIStates state = AIStates.CHASING; // Set this to true when Player class is created
+	private AIStates State
+	{
+		get { return state; }
+		set
+		{
+			if ((state == AIStates.ATTACKING) != (value == AIStates.ATTACKING))	//If either the new or old state is attacking, but the other isn't.
+			{
+				stopTimeCurrent = stopTime;
+				agent.speed = 0;
+			}
+			if (value == AIStates.CHASING)
+			{
+				agent.destination = player.position;
+
+				renderer.material = standardMaterial;
+			}
+			else if (value == AIStates.ATTACKING)
+			{
+				agent.destination = chargePosition;
+
+				renderer.material = attackMaterial;
+			}
+			else if (value == AIStates.AVOIDING)
+			{
+				agent.destination = aiPoints[random].transform.position;
+
+				renderer.material = standardMaterial;
+			}
+
+			state = value;
+		}
+	}
 	
 	private GameObject[] aiPoints; 	// This array finds all the invisible 'pink' ai points around the game scene
 	private int random;
@@ -40,9 +79,9 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		set 
 		{
 			speed = value;
-			if (state != AIStates.ATTACKING)
+			if (State != AIStates.ATTACKING)
 			{
-				gameObject.GetComponent<NavMeshAgent>().speed = value;
+				agent.speed = value;
 			}
 		}
 	}
@@ -54,9 +93,9 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		set 
 		{
 			attackSpeed = value;
-			if (state == AIStates.ATTACKING)
+			if (State == AIStates.ATTACKING)
 			{
-				gameObject.GetComponent<NavMeshAgent>().speed = value;
+				agent.speed = value;
 			}
 		}
 	}
@@ -67,7 +106,7 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		set 
 		{
 			angularSpeed = value;
-			gameObject.GetComponent<NavMeshAgent>().angularSpeed = value;
+			agent.angularSpeed = value;
 		}
 	}
 
@@ -78,8 +117,7 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		set 
 		{
 			acceleration = value;
-			gameObject.GetComponent<NavMeshAgent>().acceleration = value;
-
+			agent.acceleration = value;
 		}
 	}
 	
@@ -89,7 +127,12 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 	void Awake()
 	{
 		aiPoints = GameObject.FindGameObjectsWithTag("AiPoint");	// Making sure the enemy class knows where the player and AI Points are
-		player = GameObject.FindGameObjectWithTag("Player");
+		player = GameObject.FindGameObjectWithTag("Player").transform;
+		agent = GetComponent<NavMeshAgent>();
+
+		renderer = GetComponent<Renderer>();
+
+		State = AIStates.CHASING;
 
 		nodeTimerCurrent = nodeTimer;
 		attackCooldownCurrent = attackCooldown;
@@ -101,54 +144,53 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 	void Update () 
 	{
 		attackCooldownCurrent -= Time.deltaTime;
-		stopTimeCurrent -= Time.deltaTime;
+
 
 		if (waitTimer < 0.0f)
 		{
 			waitTimer = 0.0f;
 		}
 
-		if (stopTime <= 0)
+		bool stopped = stopTimeCurrent > 0;	//Used for checking if we stopped this frame.
 
-		if (state == AIStates.AVOIDING)
+		stopTimeCurrent -= Time.deltaTime;
+
+		if (stopped == true && stopTimeCurrent > 0 == false)	//If we just became un-stopped
+		{
+			agent.speed = ((State == AIStates.ATTACKING)?attackSpeed:speed);
+		}
+
+		if (State == AIStates.AVOIDING)
 		{
 			nodeTimerCurrent -= Time.deltaTime;
 			if (nodeTimerCurrent <= 0)
 			{
-				state = AIStates.CHASING;
+				State = AIStates.CHASING;
 			}
 		}
 	
 		GameObject targetObject = aiPoints[random]; // Select one of the ai points for the nav mesh to navigate towards
-	
-		switch (state) 
+
+		switch (State) 
 		{
 		case AIStates.AVOIDING:
-			gameObject.GetComponent<NavMeshAgent>().destination = targetObject.transform.position;
 			break;
 		case AIStates.CHASING:
 			if ( player == null)		// A failsafe, if Player does not exist.
 			{
-				gameObject.GetComponent<NavMeshAgent>().destination = Vector3.zero; 
+				agent.destination = Vector3.zero; 
 				Debug.Log ("Player Object is Missing");
 			}
 			else if (player != null)
 			{
-				gameObject.GetComponent<NavMeshAgent>().destination = player.transform.position;
+				agent.destination = player.position;
 			}
 			break;
 		case AIStates.ATTACKING:
 			if ((new Vector2(transform.position.x, transform.position.z) -  new Vector2(chargePosition.x, chargePosition.z)).sqrMagnitude < 0.1f)
 			{
-				state = AIStates.CHASING;
+				State = AIStates.CHASING;
 				attackCooldownCurrent = attackCooldown;
-				gameObject.GetComponent<NavMeshAgent>().speed = speed;
-				gameObject.GetComponent<NavMeshAgent>().destination = player.transform.position;
-				Debug.Log("Reached player position");
-			}
-			else
-			{
-				Debug.Log((transform.position - chargePosition).sqrMagnitude);
 			}
 			break;
 		default:
@@ -170,20 +212,39 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		{
 			//waitTimer = 1.0f;
 			FindAnotherAiPoint();
-			state = AIStates.CHASING;
+			State = AIStates.CHASING;
 		}
 		else if (a_other.tag == "EnemyTrigger")
 		{
-			if (state != AIStates.ATTACKING)
+			EnemyMelee other = a_other.transform.parent.GetComponent<EnemyMelee>();
+			if (other != null)	//If the other guy is melee
 			{
-				FindAnotherAiPoint(); 		// if enemies collide, make them both find another waypoint
-				//Debug.Log ("repath!!!");
-				state = AIStates.AVOIDING;
-				
-				nodeTimerCurrent = nodeTimer;
-				
-				// MAKE A NOISE!!!
-				audio.Melee();
+				if (State != AIStates.ATTACKING && other.State != AIStates.ATTACKING)	//If neither guy is attacking
+				{
+					FindAnotherAiPoint(); 		// if enemies collide, make them both find another waypoint
+					//Debug.Log ("repath!!!");
+					State = AIStates.AVOIDING;
+					
+					nodeTimerCurrent = nodeTimer;
+					
+					// MAKE A NOISE!!!
+					audio.Melee();
+				}
+				else if (agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)	//If I am attacking
+				{
+					Debug.Log (agent.velocity.sqrMagnitude);
+					if (other.agent.velocity.sqrMagnitude > 30.0f && other.State == AIStates.ATTACKING)	//And he is too
+					{
+						//Destroy both
+						DestroyObject(a_other.transform.parent.gameObject);
+						DestroyObject(gameObject);
+					}
+					else //And he isn't attacking
+					{
+						//Just destroy him
+						DestroyObject(a_other.transform.parent.gameObject);
+					}
+				}
 			}
 		}
 	}
@@ -207,13 +268,10 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 	//This is called by the player when enemy melee units are within charge range.
 	public void Aggro(Vector3 a_playerPosition)
 	{
-		if (state != AIStates.ATTACKING && attackCooldownCurrent <= 0) 
+		if (State != AIStates.ATTACKING && attackCooldownCurrent <= 0) 
 		{
 			chargePosition = transform.position + 2 * (a_playerPosition - transform.position);
-			state = AIStates.ATTACKING;
-			NavMeshAgent agent = gameObject.GetComponent<NavMeshAgent>();
-			agent.speed = attackSpeed;
-			agent.destination = chargePosition;
+			State = AIStates.ATTACKING;
 		}
 	}
 }
