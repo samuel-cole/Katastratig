@@ -26,7 +26,6 @@ public class EnemyWaveController : MonoBehaviour // Spawns enemies according to 
 	void Update () 
 	{
 		enemies = GameObject.FindGameObjectsWithTag("Enemy"); // constantly check for enemies
-		Debug.Log (spawnPoints.Length);
 		
 		timer -= Time.deltaTime;
 		
@@ -46,8 +45,6 @@ public class EnemyWaveController : MonoBehaviour // Spawns enemies according to 
 			ChooseARandomSpawnPoint();														// Choose a random spawn point
 			Instantiate(enemyPrefab, spawnPoints[random].transform.position, Quaternion.identity);	// And Spawn it here
 		}
-		
-		Debug.Log ("Timer: "+ timer +"  enemies.Length:  " + enemies.Length + "     number of enemies:  " + numberOfEnemies);
 	}
 	
 	void ChooseARandomSpawnPoint()

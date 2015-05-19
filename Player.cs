@@ -140,4 +140,11 @@ public class Player : MonoBehaviour
 
 		++frameNo;
 	}
+
+
+	void OnCollisionEnter(Collision a_collision)
+	{
+		GameObject.FindGameObjectWithTag("GameController").GetComponent<StateManager>().Results();
+	}
+
 }

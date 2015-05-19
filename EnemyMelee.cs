@@ -145,12 +145,6 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 	{
 		attackCooldownCurrent -= Time.deltaTime;
 
-
-		if (waitTimer < 0.0f)
-		{
-			waitTimer = 0.0f;
-		}
-
 		bool stopped = stopTimeCurrent > 0;	//Used for checking if we stopped this frame.
 
 		stopTimeCurrent -= Time.deltaTime;
@@ -167,6 +161,11 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 			{
 				State = AIStates.CHASING;
 			}
+		}
+
+		if (stopTimeCurrent > 0)
+		{
+			transform.rotation =  Quaternion.LookRotation(agent.destination - transform.position);
 		}
 	
 		GameObject targetObject = aiPoints[random]; // Select one of the ai points for the nav mesh to navigate towards
@@ -232,7 +231,6 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 				}
 				else if (agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)	//If I am attacking
 				{
-					Debug.Log (agent.velocity.sqrMagnitude);
 					if (other.agent.velocity.sqrMagnitude > 30.0f && other.State == AIStates.ATTACKING)	//And he is too
 					{
 						//Destroy both
