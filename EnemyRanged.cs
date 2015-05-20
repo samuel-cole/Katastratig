@@ -1,14 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 //[RequireComponent(typeof(NavMeshAgent))]
-public enum AIStates
-{
-	CHASING,
-	AVOIDING,
-	ATTACKING
-}
 
-public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through the tag 'AI_Point' assigned in the inspector
+public class EnemyRanged : MonoBehaviour // The enemy looks for AI points through the tag 'AI_Point' assigned in the inspector
 {
 
 	private Transform player; // Find the player
@@ -16,22 +10,20 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 	private NavMeshAgent agent; //The AI of this enemy
 
 	private AnimationController spriteAnimation;	//Controls animation.
-	
+
 	//This stores the current action that the AI should be taking.
+	//AIStates is defined in EnemyMelee.
 	private AIStates state = AIStates.CHASING; // Set this to true when Player class is created
-	public AIStates State
+	private AIStates State
 	{
 		get { return state; }
 		set
 		{
-			if ((state == AIStates.ATTACKING) != (value == AIStates.ATTACKING))	//If either the new or old state is attacking, but the other isn't.
-			{
-				stopTimeCurrent = stopTime;
-				agent.speed = 0;
-			}
 			if (value == AIStates.CHASING)
 			{
 				agent.destination = player.position;
+
+				agent.speed = speed;
 
 				if (spriteAnimation != null)
 				{
@@ -40,7 +32,9 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 			}
 			else if (value == AIStates.ATTACKING)
 			{
-				agent.destination = chargePosition;
+				agent.destination = player.position;
+
+				agent.speed = attackSpeed;
 
 				if (spriteAnimation != null)
 				{
@@ -50,6 +44,8 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 			else if (value == AIStates.AVOIDING)
 			{
 				agent.destination = aiPoints[random].transform.position;
+
+				agent.speed = speed;
 
 				if (spriteAnimation != null)
 				{
@@ -69,13 +65,6 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 	//Timer that dictates how long the AI should head towards a node before returning its attention to the player.
 	public float nodeTimer = 0.5f;
 	private float nodeTimerCurrent;
-
-	//Atack related stuff.
-	public float attackCooldown = 4.0f;
-	private float attackCooldownCurrent;
-	public Vector3 chargePosition;
-	public float stopTime = 1.0f;
-	private float stopTimeCurrent;
 
 	// These are Nav Mesh Agents variables
 	// Easier to change navMeshAgent Variables on this scrip than on component
@@ -140,8 +129,6 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		State = AIStates.CHASING;
 
 		nodeTimerCurrent = nodeTimer;
-		attackCooldownCurrent = attackCooldown;
-		stopTimeCurrent = stopTime;
 
 		spriteAnimation = transform.FindChild ("EnemyAnimation").GetComponent<AnimationController> ();
 		
@@ -150,17 +137,6 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 
 	void Update () 
 	{
-		attackCooldownCurrent -= Time.deltaTime;
-
-		bool stopped = stopTimeCurrent > 0;	//Used for checking if we stopped this frame.
-
-		stopTimeCurrent -= Time.deltaTime;
-
-		if (stopped == true && stopTimeCurrent > 0 == false)	//If we just became un-stopped
-		{
-			agent.speed = ((State == AIStates.ATTACKING)?attackSpeed:speed);
-		}
-
 		if (State == AIStates.AVOIDING)
 		{
 			nodeTimerCurrent -= Time.deltaTime;
@@ -170,11 +146,10 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 			}
 		}
 
-		if (stopTimeCurrent > 0)
-		{
-			transform.rotation =  Quaternion.LookRotation(agent.destination - transform.position);
-		}
-	
+
+		Physics.S
+
+
 		switch (State) 
 		{
 		case AIStates.AVOIDING:
@@ -191,11 +166,6 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 			}
 			break;
 		case AIStates.ATTACKING:
-			if ((new Vector2(transform.position.x, transform.position.z) -  new Vector2(chargePosition.x, chargePosition.z)).sqrMagnitude < 0.1f)
-			{
-				State = AIStates.CHASING;
-				attackCooldownCurrent = attackCooldown;
-			}
 			break;
 		default:
 			break;
@@ -234,27 +204,6 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 					// MAKE A NOISE!!!
 					audio.Melee();
 				}
-				else if (agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)	//If I am attacking
-				{
-					if (other.agent.velocity.sqrMagnitude > 30.0f && other.State == AIStates.ATTACKING)	//And he is too
-					{
-						//Destroy both
-						DestroyObject(a_other.transform.parent.gameObject);
-						DestroyObject(gameObject);
-					}
-					else //And he isn't attacking
-					{
-						//Just destroy him
-						DestroyObject(a_other.transform.parent.gameObject);
-					}
-				}
-			}
-			else if (a_other.transform.parent.GetComponent<EnemyRanged>())
-			{
-				if (other.agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)
-				{
-					DestroyObject(a_other.transform.parent.gameObject);
-				}
 			}
 		}
 	}
@@ -272,16 +221,6 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 			}
 			
 			FindAnotherAiPoint();
-		}
-	}
-
-	//This is called by the player when enemy melee units are within charge range.
-	public void Aggro(Vector3 a_playerPosition)
-	{
-		if (State != AIStates.ATTACKING && attackCooldownCurrent <= 0) 
-		{
-			chargePosition = transform.position + 2 * (a_playerPosition - transform.position);
-			State = AIStates.ATTACKING;
 		}
 	}
 }

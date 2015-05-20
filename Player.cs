@@ -33,9 +33,6 @@ public class Player : MonoBehaviour
 	//The amount of time that the player must wait after a roll is completed before beginning a new one.
 	public float rollTimeCooldown = 0.5f;
 
-	//This is used for only doing complex calculations every few frames.
-	private int frameNo = 0;
-
 	public float meleeAggroDistance = 3.0f;
 
 	// Use this for initialization
@@ -113,18 +110,15 @@ public class Player : MonoBehaviour
 			player.AddForce(force);
 		}
 
-		if (frameNo > 10)
+		Collider[] colliders = Physics.OverlapSphere(transform.position, meleeAggroDistance);
+		for (uint i = 0; i < colliders.Length; ++i)
 		{
-			frameNo = 0;
-			Collider[] colliders = Physics.OverlapSphere(transform.position, meleeAggroDistance);
-			for (uint i = 0; i < colliders.Length; ++i)
+			if (colliders[i].gameObject.GetComponent<EnemyMelee>() != null)
 			{
-				if (colliders[i].gameObject.GetComponent<EnemyMelee>() != null)
-				{
-					colliders[i].gameObject.GetComponent<EnemyMelee>().Aggro(transform.position);
-				}
+				colliders[i].gameObject.GetComponent<EnemyMelee>().Aggro(transform.position);
 			}
 		}
+
 	}
 
 	//Update is used for all of the non-physics related things that happen during the update loop.
@@ -137,14 +131,15 @@ public class Player : MonoBehaviour
 			rolling = Vector3.zero;
 			test.color = Color.white;
 		}
-
-		++frameNo;
 	}
 
 
 	void OnCollisionEnter(Collision a_collision)
 	{
-		GameObject.FindGameObjectWithTag("GameController").GetComponent<StateManager>().Results();
+		if (a_collision.gameObject.CompareTag("Enemy"))
+		{
+			GameObject.FindGameObjectWithTag("GameController").GetComponent<StateManager>().Results();
+		}
 	}
 
 }

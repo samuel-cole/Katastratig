@@ -72,14 +72,15 @@ public class ArcherRaycast : MonoBehaviour
 			
 		line.material.color = materialColor;
 		
-		Debug.Log ("Alpha  " + materialColor.a);
-		
-		
 		///////////////////////////////////////////////////////////////
 	
-		Ray	ray = new Ray(gameObject.transform.position, gameObject.transform.TransformDirection(Vector3.forward));
+		Ray	ray = new Ray(gameObject.transform.position, gameObject.transform.parent.FindChild ("EnemyAnimation").TransformDirection(Vector3.up));
 		
 		if (Physics.Raycast(ray,out hit, 20))
+		{
+			timerDown = true;
+		}
+		else if (timer < 0.5f && timer > 0.0f)
 		{
 			timerDown = true;
 		}
@@ -104,6 +105,10 @@ public class ArcherRaycast : MonoBehaviour
 	{
 		if (hit.collider != null)
 		{
+			if (hit.collider.gameObject.CompareTag("Player"))
+			{
+				GameObject.FindGameObjectWithTag("GameController").GetComponent<StateManager>().Results();
+			}
 			GameObject.Destroy(hit.collider.gameObject);
 		}
 		timerDown = false;
