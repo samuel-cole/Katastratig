@@ -251,7 +251,7 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 			}
 			else if (a_other.transform.parent.GetComponent<EnemyRanged>())
 			{
-				if (other.agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)
+				if (agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)
 				{
 					DestroyObject(a_other.transform.parent.gameObject);
 				}

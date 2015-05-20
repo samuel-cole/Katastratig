@@ -9,6 +9,10 @@ public class ArcherRaycast : MonoBehaviour
 	
 	private bool timerDown;
 	private float timer;
+	public float Timer
+	{
+		get { return timer; }
+	}
 	
 	private EnemyAudio audio;
 	private GameObject parent;
@@ -78,7 +82,10 @@ public class ArcherRaycast : MonoBehaviour
 		
 		if (Physics.Raycast(ray,out hit, 20))
 		{
-			timerDown = true;
+			//if (hit.collider.gameObject.CompareTag("Player"))
+			{
+				timerDown = true;
+			}
 		}
 		else if (timer < 0.5f && timer > 0.0f)
 		{
@@ -107,11 +114,18 @@ public class ArcherRaycast : MonoBehaviour
 		{
 			if (hit.collider.gameObject.CompareTag("Player"))
 			{
-				GameObject.FindGameObjectWithTag("GameController").GetComponent<StateManager>().Results();
+				if (hit.collider.gameObject.GetComponent<Player>().RollTimeCurrent < 0.0f)
+				{
+					GameObject.FindGameObjectWithTag("GameController").GetComponent<StateManager>().Results();
+				}
 			}
-			GameObject.Destroy(hit.collider.gameObject);
+			else
+			{			
+				GameObject.Destroy(hit.collider.gameObject);
+			}
 		}
 		timerDown = false;
+		//timer = 1.0f;
 		anim.StopAction();	// stop the attack animation
 	}
 }

@@ -12,6 +12,9 @@ public class Player : MonoBehaviour
 	//player is used to store the player's rigidbody, for use in physics calculations.
 	private Rigidbody player;
 
+	//The collider the player uses. Disabled while rolling, and re-enabled when no longer rolling.
+	private BoxCollider playerCollider;
+
 	//Pretty self-explanatary, speed influences the rate the player moves at.
 	public float speed = 100.0f;
 
@@ -29,6 +32,11 @@ public class Player : MonoBehaviour
 	public float rollTime = 0.3f;
 	//Timer that counts down from roll time whenever the player rolls.
 	private float rollTimeCurrent = 0.0f;
+	//Accessor property for rollTimeCurrent
+	public float RollTimeCurrent
+	{
+		get { return rollTimeCurrent; }
+	}
 
 	//The amount of time that the player must wait after a roll is completed before beginning a new one.
 	public float rollTimeCooldown = 0.5f;
@@ -40,6 +48,7 @@ public class Player : MonoBehaviour
 	{
 		player = GetComponent<Rigidbody>();
 		test = GetComponent<SpriteRenderer>();
+		playerCollider = GetComponent<BoxCollider>();
 	}
 	
 	// FixedUpdate is being used instead of update here because I do physics calculations.
@@ -78,6 +87,7 @@ public class Player : MonoBehaviour
 				rolling = force;
 				rollTimeCurrent = rollTime;
 				test.color = Color.red;
+				playerCollider.enabled = false;
 			}
 
 		}
@@ -124,12 +134,17 @@ public class Player : MonoBehaviour
 	//Update is used for all of the non-physics related things that happen during the update loop.
 	void Update()
 	{
+		//Used for testing if the player stopped rolling this frame.
+		bool rollingCheck = rollTimeCurrent > 0;
+
 		rollTimeCurrent -= Time.deltaTime;
 
-		if (rollTimeCurrent <= 0)
+
+		if (rollingCheck && rollTimeCurrent <= 0) 	//If the player stopped rolling this frame.
 		{
 			rolling = Vector3.zero;
 			test.color = Color.white;
+			playerCollider.enabled = true;
 		}
 	}
 

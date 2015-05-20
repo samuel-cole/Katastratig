@@ -10,6 +10,7 @@ public class EnemyRanged : MonoBehaviour // The enemy looks for AI points throug
 	private NavMeshAgent agent; //The AI of this enemy
 
 	private AnimationController spriteAnimation;	//Controls animation.
+	private ArcherRaycast raycaster; //Controls firing.
 
 	//This stores the current action that the AI should be taking.
 	//AIStates is defined in EnemyMelee.
@@ -41,30 +42,10 @@ public class EnemyRanged : MonoBehaviour // The enemy looks for AI points throug
 					spriteAnimation.Action();
 				}
 			}
-			else if (value == AIStates.AVOIDING)
-			{
-				agent.destination = aiPoints[random].transform.position;
-
-				agent.speed = speed;
-
-				if (spriteAnimation != null)
-				{
-					spriteAnimation.StopAction();
-				}
-			}
 
 			state = value;
 		}
 	}
-	
-	private GameObject[] aiPoints; 	// This array finds all the invisible 'pink' ai points around the game scene
-	private int random;
-	//private int currentAiPointNumber; // A precaution
-	private float waitTimer = 1.0f; // A precaution
-
-	//Timer that dictates how long the AI should head towards a node before returning its attention to the player.
-	public float nodeTimer = 0.5f;
-	private float nodeTimerCurrent;
 
 	// These are Nav Mesh Agents variables
 	// Easier to change navMeshAgent Variables on this scrip than on component
@@ -116,44 +97,33 @@ public class EnemyRanged : MonoBehaviour // The enemy looks for AI points throug
 			agent.acceleration = value;
 		}
 	}
-	
-	//Refence to the Audio Script
-	private EnemyAudio audio;
 
 	void Awake()
 	{
-		aiPoints = GameObject.FindGameObjectsWithTag("AiPoint");	// Making sure the enemy class knows where the player and AI Points are
 		player = GameObject.FindGameObjectWithTag("Player").transform;
 		agent = GetComponent<NavMeshAgent>();
+		raycaster = transform.FindChild("RangedAttack").GetComponent<ArcherRaycast>();
 
 		State = AIStates.CHASING;
 
-		nodeTimerCurrent = nodeTimer;
-
 		spriteAnimation = transform.FindChild ("EnemyAnimation").GetComponent<AnimationController> ();
-		
-		audio = transform.gameObject.GetComponent<EnemyAudio>()as EnemyAudio;
 	}
 
 	void Update () 
 	{
-		if (State == AIStates.AVOIDING)
+		if (raycaster.Timer < 0.8f)
 		{
-			nodeTimerCurrent -= Time.deltaTime;
-			if (nodeTimerCurrent <= 0)
-			{
-				State = AIStates.CHASING;
-			}
+			State = AIStates.ATTACKING;
+		}
+		else if (State == AIStates.ATTACKING)		//If no longer attacking.
+		{
+			State = AIStates.CHASING;
 		}
 
-
-		Physics.S
-
+		//spriteAnimation.transform.up = player.transform.position - spriteAnimation.transform.position;
 
 		switch (State) 
 		{
-		case AIStates.AVOIDING:
-			break;
 		case AIStates.CHASING:
 			if ( player == null)		// A failsafe, if Player does not exist.
 			{
@@ -169,58 +139,6 @@ public class EnemyRanged : MonoBehaviour // The enemy looks for AI points throug
 			break;
 		default:
 			break;
-		}
-	}
-	
-	
-	void FindAnotherAiPoint()		// This function randomly finds one of the existing waypoints.
-	{
-		int numberOfAiPoints = aiPoints.Length;
-		random = Random.Range (0, numberOfAiPoints);
-	}
-	
-	
-	void OnTriggerEnter(Collider a_other)			
-	{
-		if (a_other.tag == "AiPoint")	// Trigger upon entering AI point
-		{
-			//waitTimer = 1.0f;
-			FindAnotherAiPoint();
-			State = AIStates.CHASING;
-		}
-		else if (a_other.tag == "EnemyTrigger")
-		{
-			EnemyMelee other = a_other.transform.parent.GetComponent<EnemyMelee>();
-			if (other != null)	//If the other guy is melee
-			{
-				if (State != AIStates.ATTACKING && other.State != AIStates.ATTACKING)	//If neither guy is attacking
-				{
-					FindAnotherAiPoint(); 		// if enemies collide, make them both find another waypoint
-					//Debug.Log ("repath!!!");
-					State = AIStates.AVOIDING;
-					
-					nodeTimerCurrent = nodeTimer;
-					
-					// MAKE A NOISE!!!
-					audio.Melee();
-				}
-			}
-		}
-	}
-	
-	void OnTriggerStay(Collider a_other)	// A failsafe. If the navMeshAgent's velocity makes the enemy get stuck in an AI point, then give it a new destination after a second.
-	{
-		if (a_other.tag == "AiPoint")
-		{
-			waitTimer -= Time.deltaTime;
-			
-			if (waitTimer < 0.1f)
-			{
-				FindAnotherAiPoint();
-				waitTimer = 1.0f;
-			}
-			
-			FindAnotherAiPoint();
 		}
 	}
 }
