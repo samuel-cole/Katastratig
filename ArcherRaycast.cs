@@ -18,12 +18,14 @@ public class ArcherRaycast : MonoBehaviour
 	private GameObject parent;
 	private AnimationController anim;
 	private Color materialColor;
+	private GameManager gameManager;
 
 	void Start () 
 	{	
 		parent = gameObject.transform.parent.gameObject;
 		enemyAudio = parent.GetComponent<EnemyAudio>();
 		anim = parent.GetComponentInChildren<AnimationController>();
+		gameManager = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>();
 		
 		line = gameObject.GetComponent<LineRenderer>();
 		materialColor = line.material.color;
@@ -120,7 +122,8 @@ public class ArcherRaycast : MonoBehaviour
 				}
 			}
 			else
-			{			
+			{	
+				gameManager.IncreaseMultiplier();
 				GameObject.Destroy(hit.collider.gameObject);
 			}
 		}

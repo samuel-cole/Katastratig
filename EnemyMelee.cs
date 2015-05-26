@@ -131,6 +131,9 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 	//Refence to the Audio Script
 	private EnemyAudio enemyAudio;
 
+	//Reference to the game manager- used for adding multiplier when killing other enemies.
+	private GameManager gameManager;
+
 	void Awake()
 	{
 		aiPoints = GameObject.FindGameObjectsWithTag("AiPoint");	// Making sure the enemy class knows where the player and AI Points are
@@ -150,6 +153,8 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		spriteAnimation = transform.FindChild ("EnemyAnimation").GetComponent<AnimationController> ();
 		
 		enemyAudio = transform.gameObject.GetComponent<EnemyAudio>()as EnemyAudio;
+
+		gameManager = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>();
 	}
 
 	void Update () 
@@ -245,11 +250,14 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 						//Destroy both
 						DestroyObject(a_other.transform.parent.gameObject);
 						DestroyObject(gameObject);
+						gameManager.IncreaseMultiplier();
+						gameManager.IncreaseMultiplier();
 					}
 					else //And he isn't attacking
 					{
 						//Just destroy him
 						DestroyObject(a_other.transform.parent.gameObject);
+						gameManager.IncreaseMultiplier();
 					}
 				}
 			}
@@ -258,6 +266,7 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 				if (agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)
 				{
 					DestroyObject(a_other.transform.parent.gameObject);
+					gameManager.IncreaseMultiplier();
 				}
 			}
 		}

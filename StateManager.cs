@@ -1,11 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class StateManager : MonoBehaviour 
 {
 	void Start()
 	{
 		gameObject.transform.position = Vector3.zero;
+
+		if (Application.loadedLevelName == "ResultsScene")
+		{
+			Transform hud = GameObject.FindGameObjectWithTag("Finish").transform;
+			hud.FindChild("Text 3").GetComponent<Text>().text = PlayerPrefs.GetInt("score").ToString();
+			hud.FindChild("Text 4").GetComponent<Text>().text = PlayerPrefs.GetInt("highscore").ToString();
+		}
 	}
 
 	void Update()
@@ -44,6 +52,10 @@ public class StateManager : MonoBehaviour
 
 	public void Results()
 	{
+		if (Application.loadedLevelName == "GameScene")
+		{
+			GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>().GameOver();
+		}
 		Application.LoadLevel ("ResultsScene");
 	}
 }

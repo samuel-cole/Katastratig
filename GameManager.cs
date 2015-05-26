@@ -2,27 +2,16 @@
 using System.Collections;
 
 public class GameManager : MonoBehaviour {
-	int score;
+	int score = 0;
 
-	float addScoreTime;
-	int nextScoreIncrement;
-	int timeScoreValue;
+	float addScoreTime = 0;
+	public int nextScoreIncrement = 1;
+	public int timeScoreValue = 1;
 
-	int multiplier;
-	float multiplierDecreaseTime;
-	float multiplierDecreaseTimeReset;
+	int multiplier = 1;
+	float multiplierDecreaseTime = 0;
+	public float multiplierDecreaseTimeReset = 3;
 
-	void Start () {
-		score = 0;
-
-		addScoreTime = 0;
-		nextScoreIncrement = 1;
-		timeScoreValue = 1;
-
-		multiplier = 1;
-		multiplierDecreaseTime = 0;
-		multiplierDecreaseTimeReset = 3;
-	}
 	void Update () {
 
 		addScoreTime += Time.deltaTime;
@@ -34,15 +23,15 @@ public class GameManager : MonoBehaviour {
 		}
 
 		if (addScoreTime >= nextScoreIncrement) {
-			AddScore((int)(timeScoreValue * multiplier));
+			AddScore(timeScoreValue * multiplier);
 			nextScoreIncrement += 1;
 		}
 	}
 	void AddScore(int a_scoreValue)
 	{
-		//score += scoreValue;
+		score += a_scoreValue;
 	}
-	void IncreaseMultiplier()
+	public void IncreaseMultiplier()
 	{
 		multiplier += 1;
 	}
@@ -52,5 +41,15 @@ public class GameManager : MonoBehaviour {
 			return;
 		}
 		multiplier -= 1;
+	}
+	public void GameOver()
+	{
+		PlayerPrefs.SetInt("score", score);
+		int highScore = PlayerPrefs.GetInt("highscore");
+		if (score > highScore)
+		{
+			PlayerPrefs.SetInt("highscore", score);
+		}
+		PlayerPrefs.Save();
 	}
 }
