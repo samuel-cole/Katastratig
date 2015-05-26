@@ -40,7 +40,7 @@ public class GameManager : MonoBehaviour {
 	}
 	void AddScore(int a_scoreValue)
 	{
-		score += scoreValue;
+		//score += scoreValue;
 	}
 	void IncreaseMultiplier()
 	{

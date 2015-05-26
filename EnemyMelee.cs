@@ -129,12 +129,16 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 	}
 	
 	//Refence to the Audio Script
-	private EnemyAudio audio;
+	private EnemyAudio enemyAudio;
 
 	void Awake()
 	{
 		aiPoints = GameObject.FindGameObjectsWithTag("AiPoint");	// Making sure the enemy class knows where the player and AI Points are
-		player = GameObject.FindGameObjectWithTag("Player").transform;
+		if (GameObject.FindGameObjectWithTag("Player") != null)
+		{
+			player = GameObject.FindGameObjectWithTag("Player").transform;
+		}
+
 		agent = GetComponent<NavMeshAgent>();
 
 		State = AIStates.CHASING;
@@ -145,7 +149,7 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 
 		spriteAnimation = transform.FindChild ("EnemyAnimation").GetComponent<AnimationController> ();
 		
-		audio = transform.gameObject.GetComponent<EnemyAudio>()as EnemyAudio;
+		enemyAudio = transform.gameObject.GetComponent<EnemyAudio>()as EnemyAudio;
 	}
 
 	void Update () 
@@ -232,7 +236,7 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 					nodeTimerCurrent = nodeTimer;
 					
 					// MAKE A NOISE!!!
-					audio.Melee();
+					enemyAudio.Melee();
 				}
 				else if (agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)	//If I am attacking
 				{
@@ -281,6 +285,12 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		if (State != AIStates.ATTACKING && attackCooldownCurrent <= 0) 
 		{
 			chargePosition = transform.position + 2 * (a_playerPosition - transform.position);
+
+			if (chargePosition.sqrMagnitude > 324) //if charge position is out of circle
+			{
+				chargePosition = chargePosition.normalized * 18.0f;	//put it back in the circle.
+			}
+
 			State = AIStates.ATTACKING;
 		}
 	}

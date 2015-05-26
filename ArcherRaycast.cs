@@ -14,7 +14,7 @@ public class ArcherRaycast : MonoBehaviour
 		get { return timer; }
 	}
 	
-	private EnemyAudio audio;
+	private EnemyAudio enemyAudio;
 	private GameObject parent;
 	private AnimationController anim;
 	private Color materialColor;
@@ -22,7 +22,7 @@ public class ArcherRaycast : MonoBehaviour
 	void Start () 
 	{	
 		parent = gameObject.transform.parent.gameObject;
-		audio = parent.GetComponent<EnemyAudio>();
+		enemyAudio = parent.GetComponent<EnemyAudio>();
 		anim = parent.GetComponentInChildren<AnimationController>();
 		
 		line = gameObject.GetComponent<LineRenderer>();
@@ -49,7 +49,7 @@ public class ArcherRaycast : MonoBehaviour
 			else
 			{
 				line.SetWidth(0.1f, 0.1f);
-				audio.Ranged(); // make a noise!!
+				enemyAudio.Ranged(); // make a noise!!
 				Kill ();
 			}
 			

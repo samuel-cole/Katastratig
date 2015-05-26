@@ -34,12 +34,20 @@ public class AnimationController : MonoBehaviour
 		if (!attack)
 		{	
 			spriteMax = movementMax;
+			if (spriteNumber > spriteMax - 1)
+			{
+				spriteNumber = spriteMax;
+			}
 			myRenderer.sprite = movementSprites[spriteNumber];
 		}
 		else
 		if (attack)
 		{
 			spriteMax = actionMax;
+			if (spriteNumber > spriteMax - 1)
+			{
+				spriteNumber = spriteMax;
+			}
 			myRenderer.sprite = actionSprites[spriteNumber];
 		}
 		

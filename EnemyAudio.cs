@@ -9,44 +9,44 @@ public class EnemyAudio : MonoBehaviour
 	public AudioClip[] enemyMelee;
 	public AudioClip[] yells;
 
-	private AudioSource audio;
+	private AudioSource enemyAudio;
 	
 	void Awake()
 	{
-		audio = GetComponent<AudioSource>(); 
+		enemyAudio = GetComponent<AudioSource>(); 
 	}
 
 	void Start () 
 	{
 		if (Application.loadedLevelName == "GameScene")
 		{
-			audio.clip = spawnSound;
-			audio.pitch = Random.Range (0.7f, 1.5f);
-			audio.Play();
+			enemyAudio.clip = spawnSound;
+			enemyAudio.pitch = Random.Range (0.7f, 1.5f);
+			enemyAudio.Play();
 		}
 	}
 	
 	public void Yell()
 	{
-		audio.clip = yells[Random.Range(0, yells.Length)];
-		audio.Play();
+		enemyAudio.clip = yells[Random.Range(0, yells.Length)];
+		enemyAudio.Play();
 	}
 	
 	public void Melee()
 	{
-		audio.clip = enemyMelee[Random.Range(0, enemyMelee.Length)];
-		audio.Play();
+		enemyAudio.clip = enemyMelee[Random.Range(0, enemyMelee.Length)];
+		enemyAudio.Play();
 	}
 	
 	public void Ranged()
 	{
-		audio.clip = enemyRanged;
-		audio.Play();
+		enemyAudio.clip = enemyRanged;
+		enemyAudio.Play();
 	}
 	
 	public void Die()
 	{
-		audio.clip = deathSound;
-		audio.Play();
+		enemyAudio.clip = deathSound;
+		enemyAudio.Play();
 	}
 }
