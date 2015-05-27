@@ -43,6 +43,16 @@ public class Player : MonoBehaviour
 
 	public float meleeAggroDistance = 3.0f;
 
+
+	//Rowan added references to effect scripts
+	public CameraShake cameraShake;
+	public PlayerMakeDust makeDust;
+	public PlayerAnimationController animation;
+	public PlayerAudio audio;
+	//END
+	public GameObject bloodSplatter;
+
+
 	// Use this for initialization
 	void Start () 
 	{
@@ -59,19 +69,19 @@ public class Player : MonoBehaviour
 		{
 			Vector3 force = new Vector3();
 			
-			if (Input.GetKey(KeyCode.W))
+			if (Input.GetKey(KeyCode.W)|| Input.GetKey(KeyCode.UpArrow))
 			{
 				force += new Vector3(0, 0, 1);
 			}
-			if (Input.GetKey (KeyCode.A))
+			if (Input.GetKey (KeyCode.A)|| Input.GetKey(KeyCode.LeftArrow))
 			{
 				force += new Vector3(-1, 0, 0);		
 			}
-			if (Input.GetKey (KeyCode.S))
+			if (Input.GetKey (KeyCode.S)|| Input.GetKey(KeyCode.DownArrow))
 			{
 				force += new Vector3(0, 0, -1);		
 			}
-			if (Input.GetKey(KeyCode.D))
+			if (Input.GetKey(KeyCode.D)|| Input.GetKey(KeyCode.RightArrow))
 			{
 				force += new Vector3(1, 0, 0);		
 			}
@@ -87,7 +97,14 @@ public class Player : MonoBehaviour
 				rolling = force;
 				rollTimeCurrent = rollTime;
 				test.color = Color.red;
-				playerCollider.enabled = false;
+				playerCollider.size = new Vector3 (0.04f, 0.04f, 1.0f);
+				
+				///Rowan Added Component References
+				animation.Action();
+				audio.Roll ();
+				cameraShake.CamShake();
+				makeDust.MakeDust();
+				// END
 			}
 
 		}
@@ -144,7 +161,7 @@ public class Player : MonoBehaviour
 		{
 			rolling = Vector3.zero;
 			test.color = Color.white;
-			playerCollider.enabled = true;
+			playerCollider.size = new Vector3 (0.16f, 0.16f, 1.0f);
 		}
 	}
 

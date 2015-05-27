@@ -18,14 +18,24 @@ public class ArcherRaycast : MonoBehaviour
 	private GameObject parent;
 	private AnimationController anim;
 	private Color materialColor;
-	private GameManager gameManager;
+	
+	
+	//Rowan's Addition(component references)
+	public GameObject arrowPrefab;
+	public GameObject arrowPoint;
+	private bool gotArrow = false;
+	public ArrowProxyScript proxy;
+	// Sam, Delete this if it's causing problems
+	
+	//Rowan added reference script
+	public GameObject bloodPrefab;
+	//End
 
 	void Start () 
 	{	
 		parent = gameObject.transform.parent.gameObject;
 		enemyAudio = parent.GetComponent<EnemyAudio>();
 		anim = parent.GetComponentInChildren<AnimationController>();
-		gameManager = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>();
 		
 		line = gameObject.GetComponent<LineRenderer>();
 		materialColor = line.material.color;
@@ -33,6 +43,14 @@ public class ArcherRaycast : MonoBehaviour
 		
 		line.useWorldSpace = true;
 		line.SetWidth(0.1f, 10.0f);
+		
+		
+		//Animation Component _ delete if causing problems
+		if (proxy != null)
+		{
+			proxy.Invisible();
+		}
+		// end
 	}
 	
 	
@@ -84,6 +102,13 @@ public class ArcherRaycast : MonoBehaviour
 		
 		if (Physics.Raycast(ray,out hit, 20))
 		{
+			//________________________________________DeleteIfCausingTrouble
+			if (proxy != null)
+			{
+				proxy.Visible();
+			}
+			//______________________________________________END
+			
 			//if (hit.collider.gameObject.CompareTag("Player"))
 			{
 				timerDown = true;
@@ -91,10 +116,25 @@ public class ArcherRaycast : MonoBehaviour
 		}
 		else if (timer < 0.5f && timer > 0.0f)
 		{
+			//________________________________________DeleteIfCausingTrouble
+			if (proxy != null)
+			{
+				proxy.Visible();
+			}
+			//______________________________________________END
+			
 			timerDown = true;
 		}
 		else
 		{
+			//____________________________________________Delete if causing Trouble
+			if (proxy != null)
+			{
+				proxy.Invisible();
+			}
+			gotArrow = false;
+			//__________________________________________END
+		
 			timerDown = false;
 		}
 		
@@ -112,19 +152,31 @@ public class ArcherRaycast : MonoBehaviour
 	
 	void Kill()
 	{
+		/// Spawn An arrow_______________________________________delete this if it's causing trouble
+		if (!gotArrow)
+		{
+			//Instantiate(arrowPrefab, gameObject.transform.position, Quaternion.Euler(90, gameObject.transform.rotation.eulerAngles.y, gameObject.transform.rotation.eulerAngles.z));
+			Instantiate(arrowPrefab, arrowPoint.transform.position, Quaternion.Euler(90, arrowPoint.transform.rotation.eulerAngles.y, arrowPoint.transform.rotation.eulerAngles.z));  // SOMEHOW!!!!! SOMEHOW! SOME-HOW, this seems to work! I don't even know. It just looks 'right'. Bloody animations. This spawns the arrow object FAR infront of the actual ranged enemy object, but it looks appropriate. 
+			gotArrow = true;
+		}
+		////_______________________________________________
+		
+		
+		
 		if (hit.collider != null)
 		{
 			if (hit.collider.gameObject.CompareTag("Player"))
-			{
+			{		
 				if (hit.collider.gameObject.GetComponent<Player>().RollTimeCurrent < 0.0f)
 				{
 					GameObject.FindGameObjectWithTag("GameController").GetComponent<StateManager>().Results();
 				}
 			}
 			else
-			{	
-				gameManager.IncreaseMultiplier();
+			{			
 				GameObject.Destroy(hit.collider.gameObject);
+				// Rowan's addition - Spawn a bloodPrefab
+				Instantiate(bloodPrefab, hit.collider.gameObject.transform.position, Quaternion.Euler(90, hit.collider.gameObject.transform.rotation.eulerAngles.y, hit.collider.gameObject.transform.rotation.eulerAngles.z));
 			}
 		}
 		timerDown = false;

@@ -129,19 +129,16 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 	}
 	
 	//Refence to the Audio Script
-	private EnemyAudio enemyAudio;
-
-	//Reference to the game manager- used for adding multiplier when killing other enemies.
-	private GameManager gameManager;
+	private EnemyAudio audio;
+	
+	//Rowan added reference script
+	public GameObject bloodPrefab;
+	//End
 
 	void Awake()
 	{
 		aiPoints = GameObject.FindGameObjectsWithTag("AiPoint");	// Making sure the enemy class knows where the player and AI Points are
-		if (GameObject.FindGameObjectWithTag("Player") != null)
-		{
-			player = GameObject.FindGameObjectWithTag("Player").transform;
-		}
-
+		player = GameObject.FindGameObjectWithTag("Player").transform;
 		agent = GetComponent<NavMeshAgent>();
 
 		State = AIStates.CHASING;
@@ -152,9 +149,7 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 
 		spriteAnimation = transform.FindChild ("EnemyAnimation").GetComponent<AnimationController> ();
 		
-		enemyAudio = transform.gameObject.GetComponent<EnemyAudio>()as EnemyAudio;
-
-		gameManager = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>();
+		audio = transform.gameObject.GetComponent<EnemyAudio>()as EnemyAudio;
 	}
 
 	void Update () 
@@ -241,7 +236,7 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 					nodeTimerCurrent = nodeTimer;
 					
 					// MAKE A NOISE!!!
-					enemyAudio.Melee();
+					audio.Melee();
 				}
 				else if (agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)	//If I am attacking
 				{
@@ -250,14 +245,13 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 						//Destroy both
 						DestroyObject(a_other.transform.parent.gameObject);
 						DestroyObject(gameObject);
-						gameManager.IncreaseMultiplier();
-						gameManager.IncreaseMultiplier();
+						Instantiate(bloodPrefab, a_other.transform.position, Quaternion.Euler(90, a_other.transform.rotation.eulerAngles.y, a_other.transform.rotation.eulerAngles.z));
 					}
 					else //And he isn't attacking
 					{
 						//Just destroy him
 						DestroyObject(a_other.transform.parent.gameObject);
-						gameManager.IncreaseMultiplier();
+						Instantiate(bloodPrefab, a_other.transform.position, Quaternion.Euler(90, a_other.transform.rotation.eulerAngles.y, a_other.transform.rotation.eulerAngles.z));
 					}
 				}
 			}
@@ -266,7 +260,7 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 				if (agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)
 				{
 					DestroyObject(a_other.transform.parent.gameObject);
-					gameManager.IncreaseMultiplier();
+					Instantiate(bloodPrefab, a_other.transform.position, Quaternion.Euler(90, a_other.transform.rotation.eulerAngles.y, a_other.transform.rotation.eulerAngles.z));
 				}
 			}
 		}
@@ -295,9 +289,9 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		{
 			chargePosition = transform.position + 2 * (a_playerPosition - transform.position);
 
-			if (chargePosition.sqrMagnitude > 324) //if charge position is out of circle
+			if (chargePosition.sqrMagnitude > 324) 	//If charge position is outside of circle
 			{
-				chargePosition = chargePosition.normalized * 18.0f;	//put it back in the circle.
+				chargePosition = chargePosition.normalized * 18.0f; //Put it back in the circle.
 			}
 
 			State = AIStates.ATTACKING;
