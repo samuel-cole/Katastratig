@@ -1,18 +1,27 @@
-﻿using UnityEngine;
+﻿// This controls the Thumbs that appear on the GUI.
+// Created by Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
 
-public class EffectsScript : MonoBehaviour 		// This makes the hands special effect image change colour, alpha and rotate
+public class EffectsScript : MonoBehaviour
 {
-	private GameObject camera;
+	//The position of the camera to display the thumbs on.
+	private Transform myCamera;
+
+	//The hands to be passed in. While these aren't used directly during run-time, these are used as a way to pass in the renderers to be stored in childRenderer1 and childRenderer2.
 	public GameObject child1;
 	public GameObject child2;
+
+	//The renderers of the hands. Used for modifying the alpha of the hands.
 	private SpriteRenderer childRenderer1;
 	private SpriteRenderer childRenderer2;
+
+	//The alpha value that the hands should be displayed with.
 	private float alphaFloat = 0;
 
-	
+	//The direction that the thumbs should lerp towards- true for up, false for down.
 	private bool thumbsUp = false;
-	//private float anotherDamnTimer = 0;
 	
 	void Awake()
 	{
@@ -24,36 +33,26 @@ public class EffectsScript : MonoBehaviour 		// This makes the hands special eff
 
 	void Start () 
 	{
-		camera = GameObject.Find("Camera");
+		myCamera = GameObject.Find("Camera").transform;
 		gameObject.transform.rotation = Quaternion.Lerp(gameObject.transform.rotation, Quaternion.Euler (new Vector3(180,0,0)), Time.deltaTime * 3);
 	}
 	
 	
 	void Update () 
 	{	
-		gameObject.transform.position = new Vector3 (camera.transform.position.x, camera.transform.position.y - 5, camera.transform.position.z-1.5f); //camera.transform.position;
+		gameObject.transform.position = new Vector3 (myCamera.position.x, myCamera.position.y - 5, myCamera.position.z-1.5f); //myCamera.transform.position;
 
 		if (thumbsUp)
 		{
 			gameObject.transform.rotation = Quaternion.Lerp(gameObject.transform.rotation, Quaternion.Euler (new Vector3(0,0,0)), Time.deltaTime * 3);
 			alphaFloat += 0.02f;
 		}
-		else
-		if (!thumbsUp)
+		else if (!thumbsUp)
 		{
 			gameObject.transform.rotation = Quaternion.Lerp(gameObject.transform.rotation, Quaternion.Euler (new Vector3(180,0,0)), Time.deltaTime * 3);
 			alphaFloat -= 0.01f;
 		}
-		/*
-		if (!thumbsUp)
-		{
-			anotherDamnTimer -= Time.deltaTime;
-		}
-		
-		if (anotherDamnTimer > 0)
-		{
-			alphaFloat -= 0.02f;
-		}*/
+	
 		
 		if (alphaFloat > 1.0f)
 		{
@@ -78,6 +77,5 @@ public class EffectsScript : MonoBehaviour 		// This makes the hands special eff
 	public void DropScore()
 	{
 		thumbsUp = false;
-		//anotherDamnTimer = 1.0f;
 	}
 }

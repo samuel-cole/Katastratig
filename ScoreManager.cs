@@ -1,39 +1,50 @@
-﻿using UnityEngine;
+﻿// Controls how score is added during the play scene.
+// Created by Samuel Cole, Rowan Donaldson and Sebastian Kitsakis.
+
+using UnityEngine;
 using System.Collections;
 
-public class ScoreManager : MonoBehaviour 
+public class ScoreManager : MonoBehaviour 	
 {
+	//The player's current score.
 	[HideInInspector]
 	public int score;
+	//The player's current multiplier.
 	[HideInInspector]
 	public int multiplierNumber;
-	[HideInInspector]
-	public bool multiplierOn = false;
-	
-	private float internalTimer;
-	private float multiplierTimer = 2.0f;
+
+	//The amount of time between score increments.
+	public float scoreIncrementMax = 0.1f;
+	//The amount of time until the next score increment.
+	private float scoreIncrementTimer;
+
+	//The amount of time after increasing the multiplier before it is reset.
+	public float multiplierTimerMax = 2.0f;
+	//The amount of time until the multiplier is reset.
+	private float multiplierTimer;
+	//Script that manages the multiplier HUD element.
 	public MultiplierScript multiplierText;
+	//Script that manages the thumbs that appear on-screen while the multiplier is up.
 	public EffectsScript effects;
+	//Whether or not the thumbs are currently being displayed on the HUD.
 	private bool effectActive = false;
 
 	void Start () 
 	{
 		score = 0;
 		multiplierNumber = 1;
-		internalTimer = 1.0f;
+		multiplierTimer = multiplierTimerMax;
+		scoreIncrementTimer = scoreIncrementMax;
 	}
 	
 	void Update () 
 	{
-		internalTimer -= Time.deltaTime;
-		
-		
-		
-		if (internalTimer < 0)
+		scoreIncrementTimer -= Time.deltaTime;
+
+		if (scoreIncrementTimer < 0)
 		{
-			internalTimer = 1.0f;
-			//score ++;
-			score = score + (1*multiplierNumber);
+			scoreIncrementTimer = 0.1f;
+			score = score + multiplierNumber;
 		}
 		
 		if (multiplierTimer > 0)
@@ -45,7 +56,7 @@ public class ScoreManager : MonoBehaviour
 		{	
 			if (effectActive)
 			{
-				effects.DropScore();										//Here's the problem
+				effects.DropScore();
 				effectActive = false;
 			}
 			multiplierNumber = 1;
@@ -61,19 +72,23 @@ public class ScoreManager : MonoBehaviour
 			multiplierNumber = 4;
 		}
 	}
-	
-	public void DoubleScore()
+
+	//Increases the multiplier and triggers all of the associated HUD effects.
+	public void IncreaseMultiplier()
 	{
-		multiplierNumber ++ ;
-		multiplierTimer = 2.0f;
-		multiplierText.Multiply(); // trigger a function on another script == this one makes the "X 4" text scale up and down
+		++multiplierNumber;
+		multiplierTimer = multiplierTimerMax;
+		//Trigger a function on another script == this one makes the "X 4" text scale up and down
+		multiplierText.Multiply(); 
 		effects.Reveal();
 		effectActive = true;
 	}
 
+	//Saves out score data to file.
 	public void GameOver()
 	{
 		PlayerPrefs.SetInt("score", score);
+		PlayerPrefs.SetFloat ("time", Time.timeSinceLevelLoad);
 		int highScore = PlayerPrefs.GetInt("highscore");
 		if (score > highScore)
 		{

@@ -1,20 +1,27 @@
-﻿using UnityEngine;
+﻿// This controls the ranged enemies.
+// Created by Samuel Cole.
+
+using UnityEngine;
 using System.Collections;
-//[RequireComponent(typeof(NavMeshAgent))]
 
-public class EnemyRanged : MonoBehaviour // The enemy looks for AI points through the tag 'AI_Point' assigned in the inspector
-{
+public class EnemyRanged : MonoBehaviour 			
+{													
+	//The player that this agent should be chasing.
+	private Transform player;
 
-	private Transform player; // Find the player
-
-	private NavMeshAgent agent; //The AI of this enemy
-
-	private AnimationController spriteAnimation;	//Controls animation.
-	private ArcherRaycast raycaster; //Controls firing.
+	//The AI of this enemy.
+	private NavMeshAgent agent;
+	//Controls animation for the upper half of the player.
+	private AnimationController spriteAnimation;
+	//Controls the animation for the players feet.
+	public AnimationController feetAnimation;
+	//Controls firing.
+	private ArcherRaycast raycaster;
 
 	//This stores the current action that the AI should be taking.
 	//AIStates is defined in EnemyMelee.
-	private AIStates state = AIStates.CHASING; // Set this to true when Player class is created
+	private AIStates state = AIStates.CHASING;
+	//This accessor/mutator property for state is used for controlling all state changes.
 	private AIStates State
 	{
 		get { return state; }
@@ -29,6 +36,7 @@ public class EnemyRanged : MonoBehaviour // The enemy looks for AI points throug
 				if (spriteAnimation != null)
 				{
 					spriteAnimation.StopAction();
+					feetAnimation.StopAction();
 				}
 			}
 			else if (value == AIStates.ATTACKING)
@@ -40,6 +48,7 @@ public class EnemyRanged : MonoBehaviour // The enemy looks for AI points throug
 				if (spriteAnimation != null)
 				{
 					spriteAnimation.Action();
+					feetAnimation.Action();
 				}
 			}
 
@@ -48,8 +57,10 @@ public class EnemyRanged : MonoBehaviour // The enemy looks for AI points throug
 	}
 
 	// These are Nav Mesh Agents variables
-	// Easier to change navMeshAgent Variables on this scrip than on component
+	//Easier to change navMeshAgent Variables in this script than on the component.
+	//The speed of this agent while walking.
 	public float speed = 10.0f;
+	//Accessor/mutator property for speed.
 	public float Speed
 	{
 		get { return speed; }
@@ -76,7 +87,9 @@ public class EnemyRanged : MonoBehaviour // The enemy looks for AI points throug
 			}
 		}
 	}
+	//The angular speed of this agent.
 	public float angularSpeed = 500.0f;
+	//Accessor/mutator property for angular speed.
 	public float AngularSpeed
 	{
 		get { return angularSpeed; }
@@ -86,8 +99,9 @@ public class EnemyRanged : MonoBehaviour // The enemy looks for AI points throug
 			agent.angularSpeed = value;
 		}
 	}
-
+	//The acceleration of this agent.
 	public float acceleration = 50.0f;
+	//Accessor/mutator property for this agent.
 	public float Acceleration
 	{
 		get { return acceleration; }
@@ -111,22 +125,22 @@ public class EnemyRanged : MonoBehaviour // The enemy looks for AI points throug
 
 	void Update () 
 	{
-		if (raycaster.Timer < 0.8f)
+		if (raycaster.ChargeTime < 0.8f)
 		{
 			State = AIStates.ATTACKING;
 		}
-		else if (State == AIStates.ATTACKING)		//If no longer attacking.
+		//If no longer attacking.
+		else if (State == AIStates.ATTACKING)		
 		{
 			State = AIStates.CHASING;
 		}
 
-		//spriteAnimation.transform.up = player.transform.position - spriteAnimation.transform.position;
-
 		switch (State) 
 		{
 		case AIStates.CHASING:
-			if ( player == null)		// A failsafe, if Player does not exist.
+			if ( player == null)		
 			{
+				// A failsafe, if Player does not exist.
 				agent.destination = Vector3.zero; 
 				Debug.Log ("Player Object is Missing");
 			}

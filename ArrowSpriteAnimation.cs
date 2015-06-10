@@ -1,13 +1,16 @@
-﻿using UnityEngine;
+﻿// Used for controlling the arrow projectile sprite- note that arrows are entirely cosmetic, and that ranged enemies actually kill with a raycast before firing an arrow.
+// Created by Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
 
 public class ArrowSpriteAnimation : MonoBehaviour 
 {
-	private Vector3 myForward;
-	private bool shoot = true;
-	private float speed = 1.2f;
-	
-	private float killTimer = 3.0f;
+	//The speed at which this arrow should move.
+	public float speed = 2.4f;
+
+	//The amount of time that this arrow should exist for before deleting itself.
+	public float killTimer = 3.0f;
 
 	void Start () 
 	{
@@ -23,17 +26,6 @@ public class ArrowSpriteAnimation : MonoBehaviour
 			Destroy(gameObject);
 		}
 	
-		if (shoot)
-		{
-			gameObject.transform.Translate(Vector3.up * speed);	
-		}
-	}
-	
-	void Shoot()
-	{
-		if (!shoot)
-		{
-			shoot = true;
-		}
+		gameObject.transform.Translate(Vector3.up * speed);	
 	}
 }

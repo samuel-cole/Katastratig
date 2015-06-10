@@ -1,14 +1,18 @@
-﻿using UnityEngine;
+﻿// Controls the GUI score text.
+// Created by Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 [RequireComponent(typeof(Text))]
-public class ScoreScript : MonoBehaviour 
+
+public class ScoreScript : MonoBehaviour 		
 {
+	//Scoremanager that controls the score.
 	public ScoreManager scoreManager;
-	public EffectsScript effects;
-	
+	//The GUI text to modify.
 	private Text text;
-	
+	//The score to change the text to.
 	private int myScore = 333;
 
 	void Start () 

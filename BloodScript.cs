@@ -1,31 +1,24 @@
-﻿using UnityEngine;
+﻿// Used for creating a static blood splatter. Also manages some score elements related to dead enemies.
+// Created by Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
 [RequireComponent(typeof(SpriteRenderer))]
-public class BloodScript : MonoBehaviour 		//Goes on the blood Prefab
+
+public class BloodScript : MonoBehaviour
 {
-	private SpriteRenderer myRenderer;
+	//Array of sprites used for blood- one of these will be selected randomly for this blood splatter.
 	public Sprite[] bloodSprites;
-	private int random;
-	private float randomAngle;
-	//private float timeOut = 5.0f;
-	//private Color materaialColour;
-	private GameObject sceneManager;
-	private ScoreManager score;
 	
 	void Start () 
 	{
-		gameObject.transform.position = new Vector3(gameObject.transform.position.x, 0.1f, gameObject.transform.position.z);
-		randomAngle = Random.Range(0, 360);
-		gameObject.transform.rotation = Quaternion.Euler(90, randomAngle, 0);
-	
-		myRenderer = gameObject.GetComponent<SpriteRenderer>();
-		random = Random.Range(0, bloodSprites.Length);
-	
-		myRenderer.sprite = bloodSprites[random];
+		gameObject.transform.position = new Vector3(gameObject.transform.position.x, 0.11f, gameObject.transform.position.z);
+		gameObject.transform.rotation = Quaternion.Euler(90, Random.Range(0.0f, 360.0f), 0);
+		gameObject.GetComponent<SpriteRenderer>().sprite = bloodSprites[Random.Range(0, bloodSprites.Length)];
 		
-		
-		sceneManager = GameObject.Find("SceneManager");
-		
+		GameObject sceneManager = GameObject.Find("SceneManager");
+		ScoreManager score = null;
+
 		if (sceneManager != null)
 		{	
 			score = sceneManager.GetComponent<ScoreManager>();
@@ -33,7 +26,7 @@ public class BloodScript : MonoBehaviour 		//Goes on the blood Prefab
 		
 		if (score != null)
 		{
-			score.DoubleScore();
+			score.IncreaseMultiplier();
 		}
 	}
 }

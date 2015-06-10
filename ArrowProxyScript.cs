@@ -1,7 +1,10 @@
-﻿using UnityEngine;
+﻿// Used for changing the visibility of arrows.
+// Created by Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
 
-public class ArrowProxyScript : MonoBehaviour 
+public class ArrowProxyScript : MonoBehaviour 			
 {
 	private SpriteRenderer myRenderer;
 

@@ -1,23 +1,28 @@
-﻿using UnityEngine;
+﻿// Custom control for player audio. Ultimately, footsteps sounds weren't added to the project, so this script only handles roll noises.
+// Created by Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
 [RequireComponent(typeof(AudioSource))]
-public class PlayerAudio : MonoBehaviour 
+
+public class PlayerAudio : MonoBehaviour 	
 {
-	private AudioSource audio;
+	//The audio source of the roll sound.
+	private AudioSource myAudio;
 	
 	
 	void Start () 
 	{
-		audio = gameObject.GetComponent<AudioSource>();
-		audio.volume = 0.3f;
+		myAudio = gameObject.GetComponent<AudioSource>();
+		myAudio.volume = 0.3f;
 	}
 	
 	public void Roll()
 	{
-		if (!audio.isPlaying)
+		if (!myAudio.isPlaying)
 		{
-			audio.volume = 0.3f;
-			audio.Play();
+			myAudio.volume = 0.3f;
+			myAudio.Play();
 		}
 	}
 }

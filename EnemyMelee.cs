@@ -1,6 +1,9 @@
-﻿using UnityEngine;
+﻿// This controls the melee enemies.
+// Created by Samuel Cole and Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
-//[RequireComponent(typeof(NavMeshAgent))]
+
 public enum AIStates
 {
 	CHASING,
@@ -8,24 +11,29 @@ public enum AIStates
 	ATTACKING
 }
 
-public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through the tag 'AI_Point' assigned in the inspector
+public class EnemyMelee : MonoBehaviour
 {
+	//The player that this agent should be chasing.
+	private Transform player; 
+	//The AI of this enemy.
+	private NavMeshAgent agent; 
 
-	private Transform player; // Find the player
-
-	private NavMeshAgent agent; //The AI of this enemy
-
-	private AnimationController spriteAnimation;	//Controls animation.
+	//Controls animation for the upper half of the player.
+	private AnimationController spriteAnimation;
+	//Controls the animation for the players feet.
+	public AnimationController feetAnimation;
 	
 	//This stores the current action that the AI should be taking.
-	private AIStates state = AIStates.CHASING; // Set this to true when Player class is created
+	private AIStates state = AIStates.CHASING;
+	//This accessor/mutator property for state is used for controlling all state changes.
 	public AIStates State
 	{
 		get { return state; }
 		set
 		{
-			if ((state == AIStates.ATTACKING) != (value == AIStates.ATTACKING))	//If either the new or old state is attacking, but the other isn't.
+			if ((state == AIStates.ATTACKING) != (value == AIStates.ATTACKING))	
 			{
+				//If either the new or old state is attacking, but the other isn't.
 				stopTimeCurrent = stopTime;
 				agent.speed = 0;
 			}
@@ -36,6 +44,7 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 				if (spriteAnimation != null)
 				{
 					spriteAnimation.StopAction();
+					feetAnimation.StopAction();
 				}
 			}
 			else if (value == AIStates.ATTACKING)
@@ -45,41 +54,53 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 				if (spriteAnimation != null)
 				{
 					spriteAnimation.Action();
+					feetAnimation.Action();
 				}
 			}
 			else if (value == AIStates.AVOIDING)
 			{
-				agent.destination = aiPoints[random].transform.position;
+				agent.destination = aiPoints[randomPoint].transform.position;
 
 				if (spriteAnimation != null)
 				{
 					spriteAnimation.StopAction();
+					feetAnimation.StopAction();
 				}
 			}
 
 			state = value;
 		}
 	}
-	
-	private GameObject[] aiPoints; 	// This array finds all the invisible 'pink' ai points around the game scene
-	private int random;
-	//private int currentAiPointNumber; // A precaution
-	private float waitTimer = 1.0f; // A precaution
+
+	//This array contains all of the invisible 'pink' ai points around the game scene.
+	private GameObject[] aiPoints; 	
+	//A random index to the 'aiPoints' array for the point that this agent should move to while avoiding.
+	private int randomPoint;
+	//A precaution used to stop the AI from getting stuck in AI points.
+	private float waitTimer = 1.0f;
 
 	//Timer that dictates how long the AI should head towards a node before returning its attention to the player.
 	public float nodeTimer = 0.5f;
+	//The current amount of time to wait until returning to chasing the player.
 	private float nodeTimerCurrent;
 
 	//Atack related stuff.
+	//How long melee enemies should wait before attacking again.
 	public float attackCooldown = 4.0f;
+	//The current amount of time before this enemy attacks again.
 	private float attackCooldownCurrent;
+	//The position that this enemy should charge towards.
 	public Vector3 chargePosition;
+	//The amount of time before and after attacks that this enemy should wait before moving.
 	public float stopTime = 1.0f;
+	//The current amount of time until this enemy begins moving again.
 	private float stopTimeCurrent;
 
-	// These are Nav Mesh Agents variables
-	// Easier to change navMeshAgent Variables on this scrip than on component
+	//These are Nav Mesh Agents variables
+	//Easier to change navMeshAgent Variables in this script than on the component.
+	//The speed of this agent while walking.
 	public float speed = 10.0f;
+	//Accessor/mutator property for speed.
 	public float Speed
 	{
 		get { return speed; }
@@ -92,8 +113,9 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 			}
 		}
 	}
-
+	//The speed of this agent while attacking.
 	public float attackSpeed = 30.0f;
+	//Accessor/mutator property for attackSpeed.
 	public float AttackSpeed
 	{
 		get { return attackSpeed; }
@@ -106,7 +128,9 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 			}
 		}
 	}
+	//The angular speed of this agent.
 	public float angularSpeed = 500.0f;
+	//Accessor/mutator property for angular speed.
 	public float AngularSpeed
 	{
 		get { return angularSpeed; }
@@ -116,8 +140,9 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 			agent.angularSpeed = value;
 		}
 	}
-
+	//The acceleration of this agent.
 	public float acceleration = 50.0f;
+	//Accessor/mutator property for this agent.
 	public float Acceleration
 	{
 		get { return acceleration; }
@@ -128,16 +153,18 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		}
 	}
 	
-	//Refence to the Audio Script
-	private EnemyAudio audio;
+	//Refence to the Audio Script for playing sounds.
+	private EnemyAudio myAudio;
 	
-	//Rowan added reference script
+	//Prefabs to be spawned upon being killed/killing enemies.
 	public GameObject bloodPrefab;
-	//End
+	public GameObject bodyMeleePrefab;
+	public GameObject bodyRangedPrefab;
 
 	void Awake()
 	{
-		aiPoints = GameObject.FindGameObjectsWithTag("AiPoint");	// Making sure the enemy class knows where the player and AI Points are
+		// Making sure the enemy class knows where the player and AI Points are
+		aiPoints = GameObject.FindGameObjectsWithTag("AiPoint");	
 		player = GameObject.FindGameObjectWithTag("Player").transform;
 		agent = GetComponent<NavMeshAgent>();
 
@@ -149,18 +176,20 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 
 		spriteAnimation = transform.FindChild ("EnemyAnimation").GetComponent<AnimationController> ();
 		
-		audio = transform.gameObject.GetComponent<EnemyAudio>()as EnemyAudio;
+		myAudio = transform.gameObject.GetComponent<EnemyAudio>()as EnemyAudio;
 	}
 
 	void Update () 
 	{
 		attackCooldownCurrent -= Time.deltaTime;
 
-		bool stopped = stopTimeCurrent > 0;	//Used for checking if we stopped this frame.
+		//Used for checking if we stopped this frame.
+		bool stopped = stopTimeCurrent > 0;	
 
 		stopTimeCurrent -= Time.deltaTime;
 
-		if (stopped == true && stopTimeCurrent > 0 == false)	//If we just became un-stopped
+		//If we just became un-stopped
+		if (stopped == true && stopTimeCurrent > 0 == false)	
 		{
 			agent.speed = ((State == AIStates.ATTACKING)?attackSpeed:speed);
 		}
@@ -184,8 +213,9 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		case AIStates.AVOIDING:
 			break;
 		case AIStates.CHASING:
-			if ( player == null)		// A failsafe, if Player does not exist.
+			if ( player == null)		
 			{
+				// A failsafe, if Player does not exist.
 				agent.destination = Vector3.zero; 
 				Debug.Log ("Player Object is Missing");
 			}
@@ -206,67 +236,80 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		}
 	}
 	
-	
-	void FindAnotherAiPoint()		// This function randomly finds one of the existing waypoints.
+	// This function randomly finds one of the existing waypoints.
+	void FindAnotherAiPoint()		
 	{
 		int numberOfAiPoints = aiPoints.Length;
-		random = Random.Range (0, numberOfAiPoints);
+		randomPoint = Random.Range (0, numberOfAiPoints);
 	}
 	
 	
 	void OnTriggerEnter(Collider a_other)			
 	{
-		if (a_other.tag == "AiPoint")	// Trigger upon entering AI point
+		// Trigger upon entering AI point
+		if (a_other.tag == "AiPoint")	
 		{
-			//waitTimer = 1.0f;
 			FindAnotherAiPoint();
 			State = AIStates.CHASING;
 		}
 		else if (a_other.tag == "EnemyTrigger")
 		{
 			EnemyMelee other = a_other.transform.parent.GetComponent<EnemyMelee>();
-			if (other != null)	//If the other guy is melee
+			//If the other guy is melee
+			if (other != null)	
 			{
-				if (State != AIStates.ATTACKING && other.State != AIStates.ATTACKING)	//If neither guy is attacking
+				//If neither guy is attacking
+				if (State != AIStates.ATTACKING && other.State != AIStates.ATTACKING)	
 				{
-					FindAnotherAiPoint(); 		// if enemies collide, make them both find another waypoint
-					//Debug.Log ("repath!!!");
+					//If enemies collide, make them both find another waypoint
+					FindAnotherAiPoint(); 		
+
 					State = AIStates.AVOIDING;
 					
 					nodeTimerCurrent = nodeTimer;
-					
-					// MAKE A NOISE!!!
-					audio.Melee();
+
+					myAudio.Melee();
 				}
-				else if (agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)	//If I am attacking
+				//If I am attacking
+				else if (agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)	
 				{
-					if (other.agent.velocity.sqrMagnitude > 30.0f && other.State == AIStates.ATTACKING)	//And he is too
+					//And he is too
+					if (other.agent.velocity.sqrMagnitude > 30.0f && other.State == AIStates.ATTACKING)	
 					{
 						//Destroy both
 						DestroyObject(a_other.transform.parent.gameObject);
-						DestroyObject(gameObject);
 						Instantiate(bloodPrefab, a_other.transform.position, Quaternion.Euler(90, a_other.transform.rotation.eulerAngles.y, a_other.transform.rotation.eulerAngles.z));
+						Instantiate(bodyMeleePrefab, new Vector3(a_other.transform.position.x, 0.1f, a_other.transform.position.z), Quaternion.Euler(90, a_other.transform.rotation.eulerAngles.y, a_other.transform.rotation.eulerAngles.z));
+
+						DestroyObject(gameObject);
+						Instantiate(bloodPrefab, transform.position, Quaternion.Euler(90, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
+						Instantiate(bodyMeleePrefab, new Vector3(transform.position.x, 0.1f, transform.position.z), Quaternion.Euler(90, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
 					}
-					else //And he isn't attacking
+					//And he isn't attacking
+					else 
 					{
 						//Just destroy him
 						DestroyObject(a_other.transform.parent.gameObject);
 						Instantiate(bloodPrefab, a_other.transform.position, Quaternion.Euler(90, a_other.transform.rotation.eulerAngles.y, a_other.transform.rotation.eulerAngles.z));
+						Instantiate(bodyMeleePrefab, new Vector3(a_other.transform.position.x, 0.1f, a_other.transform.position.z), Quaternion.Euler(90, a_other.transform.rotation.eulerAngles.y, a_other.transform.rotation.eulerAngles.z));
 					}
 				}
 			}
+			//If the other guy is ranged
 			else if (a_other.transform.parent.GetComponent<EnemyRanged>())
 			{
 				if (agent.velocity.sqrMagnitude > 30.0f && State == AIStates.ATTACKING)
 				{
 					DestroyObject(a_other.transform.parent.gameObject);
 					Instantiate(bloodPrefab, a_other.transform.position, Quaternion.Euler(90, a_other.transform.rotation.eulerAngles.y, a_other.transform.rotation.eulerAngles.z));
+					Instantiate(bodyRangedPrefab, new Vector3(a_other.transform.position.x, 0.1f, a_other.transform.position.z), Quaternion.Euler(90, a_other.transform.rotation.eulerAngles.y, a_other.transform.rotation.eulerAngles.z));
 				}
 			}
 		}
 	}
-	
-	void OnTriggerStay(Collider a_other)	// A failsafe. If the navMeshAgent's velocity makes the enemy get stuck in an AI point, then give it a new destination after a second.
+
+	// A failsafe. If the navMeshAgent's velocity makes the enemy get stuck in an AI point, then give it a new destination after a second.
+	void OnTriggerStay(Collider a_other)	
 	{
 		if (a_other.tag == "AiPoint")
 		{
@@ -289,9 +332,11 @@ public class EnemyMelee : MonoBehaviour // The enemy looks for AI points through
 		{
 			chargePosition = transform.position + 2 * (a_playerPosition - transform.position);
 
-			if (chargePosition.sqrMagnitude > 324) 	//If charge position is outside of circle
+			//If charge position is outside of circle
+			if (chargePosition.sqrMagnitude > 324) 	
 			{
-				chargePosition = chargePosition.normalized * 18.0f; //Put it back in the circle.
+				//Put it back in the circle.
+				chargePosition = chargePosition.normalized * 18.0f; 
 			}
 
 			State = AIStates.ATTACKING;

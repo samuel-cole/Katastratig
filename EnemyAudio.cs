@@ -1,53 +1,47 @@
-﻿using UnityEngine;
+﻿// This controls the audio that enemies play. By randomizing the pitch on creation, we can make a vast spectrum of noises from just a few audio clips.
+// Created by Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
 [RequireComponent(typeof(AudioSource))]
-public class EnemyAudio : MonoBehaviour 
-{
-	public AudioClip spawnSound;
-	public AudioClip deathSound;
-	public AudioClip enemyRanged;
-	public AudioClip[] enemyMelee;
-	public AudioClip[] yells;
 
-	private AudioSource audio;
+public class EnemyAudio : MonoBehaviour
+{
+	//The sound to be played upon spawning.
+	public AudioClip spawnSound;
+	//The sound to be played when ranged enemies attack.
+	public AudioClip enemyRanged;
+	//The sound to be played when melee enemies bump into each other.
+	public AudioClip[] enemyMelee;
+	//The currently selected audio.
+	private AudioSource myAudio;
 	
 	void Awake()
 	{
-		audio = GetComponent<AudioSource>(); 
+		myAudio = GetComponent<AudioSource>(); 
 	}
 
 	void Start () 
 	{
 		if (Application.loadedLevelName == "GameScene")
 		{
-			audio.clip = spawnSound;
-			audio.pitch = Random.Range (0.7f, 1.5f);
-			audio.Play();
+			myAudio.clip = spawnSound;
+			myAudio.pitch = Random.Range (0.7f, 1.5f);
+			myAudio.Play();
 		}
-	}
-	
-	public void Yell()
-	{
-		audio.clip = yells[Random.Range(0, yells.Length)];
-		audio.Play();
 	}
 	
 	public void Melee()
 	{
-		audio.clip = enemyMelee[Random.Range(0, enemyMelee.Length)];
-		audio.Play();
+		myAudio.clip = enemyMelee[Random.Range(0, enemyMelee.Length)];
+		myAudio.volume = 0.5f;
+		myAudio.Play();
 	}
 	
 	public void Ranged()
 	{
-		audio.clip = enemyRanged;
-		audio.volume = 4;
-		audio.Play();
-	}
-	
-	public void Die()
-	{
-		audio.clip = deathSound;
-		audio.Play();
+		myAudio.clip = enemyRanged;
+		myAudio.volume = 4;
+		myAudio.Play();
 	}
 }

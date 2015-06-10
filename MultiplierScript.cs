@@ -1,17 +1,27 @@
-﻿using UnityEngine;
+﻿// Controls the multiplier HUD element.
+// Created by Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 [RequireComponent(typeof(Text))]
-public class MultiplierScript : MonoBehaviour 
-{
-	public ScoreManager scoreManager;
-	private Text text;
-	private int myMultiplier;
-	
-	private float scale = 0.0f;
-	private bool bump = false;
-	private float internalTimer = 0.5f;	// how long should the text shape change??	
 
+public class MultiplierScript : MonoBehaviour 		
+{	
+	//The script that will determine the scores.
+	public ScoreManager scoreManager;
+
+	//The HUD text for the multiplier.
+	private Text text;
+	//The value of the multiplier.
+	private int myMultiplier;
+
+	//The amount to increase/decrease the scale of the text.
+	private float scale = 0.0f;
+	//Whether the text should currently be increasing in scale or not. Set to true for increasing.
+	private bool bump = false;
+
+	//The colour that the text should be set to (the same value is used for R, G and B values).
 	private float manualColour = 1;
 
 
@@ -27,7 +37,6 @@ public class MultiplierScript : MonoBehaviour
 			myMultiplier = scoreManager.multiplierNumber;
 		}
 
-		
 		// Ways to render the text
 		if (myMultiplier > 1)
 		{
@@ -35,7 +44,7 @@ public class MultiplierScript : MonoBehaviour
 		}
 		else
 		{
-			text.text = (" "); // just easier this way
+			text.text = (" ");
 		}
 		
 		
@@ -51,7 +60,7 @@ public class MultiplierScript : MonoBehaviour
 			manualColour = 0;
 		}
 		
-		text.color = new Color (manualColour, manualColour, manualColour);		// This is the easiest way of doing this!!!
+		text.color = new Color (manualColour, manualColour, manualColour);
 
 
 
@@ -59,13 +68,12 @@ public class MultiplierScript : MonoBehaviour
 		{
 			scale = 0.1f;
 		}
-		else
-		if ((!bump) && (gameObject.transform.localScale.x > 1))
+		else if (gameObject.transform.localScale.x > 1)
 		{
 			scale = -0.1f;
 		}
-		else
-		if (gameObject.transform.localScale.x < 1)			// don't let it get to small
+		//Don't let it get too small.
+		else if (gameObject.transform.localScale.x < 1)			
 		{
 			scale = 0.0f;
 		}

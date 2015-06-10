@@ -1,21 +1,30 @@
-﻿using UnityEngine;
+﻿// Spawns enemies according to how much time has passed. 
+// Created by Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
 
-public class EnemyWaveController : MonoBehaviour // Spawns enemies according to the wave
+public class EnemyWaveController : MonoBehaviour
 {
-	public GameObject enemyPrefab;	// From prefabs folder
+	//Melee enemy to spawn.
+	public GameObject enemyPrefab;
+	//Ranged enemy to spawn.
 	public GameObject enemyRangedPrefab;
-	private GameObject[] enemies;	// array of existing enemies found in level
+	//Array of existing enemies found in the level.
+	private GameObject[] enemies;	
+	//The number of enemies that should exist- more enemies will be spawned when the actual number of enemies is less than this number.
 	public int numberOfEnemies;
-	
-	private GameObject[] spawnPoints;	// Find all the existing enemy spawn points
-	private int random;
-	private int random2;
-	
-	private float timer;
-	public float timeBetweenWaves = 5.0f; // These variables determine how often new Enemies spawn
 
-	private Vector3 direction = new Vector3(1, 0, 0); //This is used to offset spawning enemies by a small amount.
+	//List of gameobjects that enemies can spawn at.
+	private GameObject[] spawnPoints;
+
+	// The amount of time between waves of enemies.
+	public float timeBetweenWaves = 5.0f; 
+	//The amount of time before the next wave spawns.
+	private float timeBetweenWavesCurrent;
+
+	//This is used to offset spawning enemies by a small amount.
+	private Vector3 direction = new Vector3(1, 0, 0); 
 
 	void Awake()
 	{
@@ -24,44 +33,47 @@ public class EnemyWaveController : MonoBehaviour // Spawns enemies according to 
 
 	void Start()
 	{
-		timer = timeBetweenWaves;
+		timeBetweenWavesCurrent = timeBetweenWaves;
 	}
 
 	void Update () 
 	{
-		enemies = GameObject.FindGameObjectsWithTag("Enemy"); // constantly check for enemies
+		//Constantly check for enemies
+		enemies = GameObject.FindGameObjectsWithTag("Enemy"); 
+
+		timeBetweenWavesCurrent -= Time.deltaTime;
 		
-		timer -= Time.deltaTime;
-		
-		if (timer < 0.1f)
+		if (timeBetweenWavesCurrent < 0.0f)
 		{
-			if (numberOfEnemies < 51)		// Cap the max number of enemies to 50
+			// Cap the max number of enemies. Helps in reducing the ridiculous amount of noise that lots of enemies make.
+			if (numberOfEnemies < 26)		
 			{
 				numberOfEnemies += 2;
-				timer = timeBetweenWaves;
+				timeBetweenWavesCurrent = timeBetweenWaves;
 			}
 		}
 		
 		
-	
-		if (enemies.Length < numberOfEnemies)	// If the current number of enemies is less than enemy wave counter, add an enemy;
+		// If the current number of enemies is less than enemy wave counter, add an enemy;
+		if (enemies.Length < numberOfEnemies)	
 		{
-			ChooseARandomSpawnPoint();														// Choose a random spawn point
 
-			if (random2 < 15)
+			int randomSpawnPoint = Random.Range(0, spawnPoints.Length);
+			int enemyType = Random.Range (0, 12);
+
+			if (enemyType < 10)
 			{
-				Instantiate(enemyPrefab, spawnPoints[random].transform.position + direction, Quaternion.identity);	// And Spawn it here
+				Instantiate(enemyPrefab, spawnPoints[randomSpawnPoint].transform.position + direction, Quaternion.identity);	
+				NewDirection();
+			}
+			else if (enemyType >= 10)
+			{
+				Instantiate(enemyRangedPrefab, spawnPoints[randomSpawnPoint].transform.position + direction, Quaternion.identity);
 				NewDirection();
 			}
 			else
-			if (random2 == 15)
 			{
-				Instantiate(enemyRangedPrefab, spawnPoints[random].transform.position + direction, Quaternion.identity);	// And Spawn Ranged here!!!!!!
-				NewDirection();
-			}
-			else
-			{
-				Instantiate(enemyPrefab, spawnPoints[random].transform.position + direction, Quaternion.identity);	// And Spawn it here
+				Instantiate(enemyPrefab, spawnPoints[randomSpawnPoint].transform.position + direction, Quaternion.identity);
 				NewDirection();
 			}
 		}
@@ -90,11 +102,5 @@ public class EnemyWaveController : MonoBehaviour // Spawns enemies according to 
 				direction = new Vector3(0, 0, -1);
 			}
 		}
-	}
-	
-	void ChooseARandomSpawnPoint()
-	{
-		random = Random.Range(0, spawnPoints.Length);
-		random2 = Random.Range (0, 16);
 	}
 }

@@ -1,32 +1,31 @@
-﻿using UnityEngine;
+﻿// Script for shaking the camera- used while the player is rolling.
+// Created by Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
 
-public class CameraShake : MonoBehaviour 
+public class CameraShake : MonoBehaviour
 {
+	//Transform holding the current location of the camera.
 	private Transform myTransform;
-	private Vector3 startPos;
-	
+
+	//Timer used for determining how long the camera should continue shaking for.
 	private float shake = 0.0f;
+	//The amount that the camera should shake.
 	public float shakeAmount = 0.5f;
 
-	// Use this for initialization
+
 	void Start () 
 	{
 		myTransform = gameObject.GetComponent<Transform>() as Transform;
 	}
-	
-	// Update is called once per frame
+
 	void Update () 
 	{
-		startPos = myTransform.localPosition;
+		Vector3 startPos = myTransform.localPosition;
 		
 		shake -= Time.deltaTime;
-		
-		if (shake < 0)
-		{
-			shake = 0;
-		}
-		
+
 		if (shake > 0)
 		{
 			myTransform.localPosition = startPos + Random.insideUnitSphere * shakeAmount;	

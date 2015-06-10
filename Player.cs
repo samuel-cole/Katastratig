@@ -1,13 +1,12 @@
-﻿using UnityEngine;
+﻿// Used for controlling the player character and handling input.
+// Created by Samuel Cole.
+
+using UnityEngine;
 using System.Collections;
 
-public class Player : MonoBehaviour 
+public class Player : MonoBehaviour
 {
-	//Values given for each variable are values that felt enjoyable during an early test of player movement.
-	//Force-based values (speed, roll speed and roll influence) all presume that the player has a drag value of 10.
-
-	//Used for changing the colour of the player in test runs to check if dodge rolls are working properly.
-	private SpriteRenderer test;
+	//Force-based default values (speed, roll speed and roll influence) all presume that the player has a drag value of 10.
 
 	//player is used to store the player's rigidbody, for use in physics calculations.
 	private Rigidbody player;
@@ -41,23 +40,33 @@ public class Player : MonoBehaviour
 	//The amount of time that the player must wait after a roll is completed before beginning a new one.
 	public float rollTimeCooldown = 0.5f;
 
+	//The distance from which the player causes melee enemies to charge.
 	public float meleeAggroDistance = 3.0f;
 
-
-	//Rowan added references to effect scripts
+	//Effects script used for making the camera shake when the player rolls.	
 	public CameraShake cameraShake;
+	//Effects script used for creating dust behind the player while rolling.
 	public PlayerMakeDust makeDust;
-	public PlayerAnimationController animation;
-	public PlayerAudio audio;
-	//END
+	//Animation script for controlling the animations for the player's upper body.
+	public PlayerAnimationController myAnimation;
+	//Animation script for controlling the animations for the player's feet.
+	public PlayerAnimationController feetAnimation;
+	//Audio script used for playing sounds (only plays roll sounds, but could be possibly expanded later).
+	public PlayerAudio myAudio;
+
+	//Blood splatter object for spawning on death.
 	public GameObject bloodSplatter;
+	//Body object for spawning on death.
+	public GameObject playerBodyPrefab;
+	[HideInInspector]
+	//Whether or not the player is currently alive- used for removing the normal player sprite after death, but before switching to the results screen.
+	public bool alive = true;
 
 
 	// Use this for initialization
 	void Start () 
 	{
 		player = GetComponent<Rigidbody>();
-		test = GetComponent<SpriteRenderer>();
 		playerCollider = GetComponent<BoxCollider>();
 	}
 	
@@ -69,51 +78,6 @@ public class Player : MonoBehaviour
 		{
 			Vector3 force = new Vector3();
 			
-			if (Input.GetKey(KeyCode.W)|| Input.GetKey(KeyCode.UpArrow))
-			{
-				force += new Vector3(0, 0, 1);
-			}
-			if (Input.GetKey (KeyCode.A)|| Input.GetKey(KeyCode.LeftArrow))
-			{
-				force += new Vector3(-1, 0, 0);		
-			}
-			if (Input.GetKey (KeyCode.S)|| Input.GetKey(KeyCode.DownArrow))
-			{
-				force += new Vector3(0, 0, -1);		
-			}
-			if (Input.GetKey(KeyCode.D)|| Input.GetKey(KeyCode.RightArrow))
-			{
-				force += new Vector3(1, 0, 0);		
-			}
-
-			//Normalize to ensure that the force is equal even when moving diagonally.
-			force.Normalize();
-
-			player.AddForce(force * speed);
-
-			//Here is where rolls are initiated.
-			if (Input.GetKey (KeyCode.Space) && rollTimeCurrent <= -rollTimeCooldown)
-			{
-				rolling = force;
-				rollTimeCurrent = rollTime;
-				test.color = Color.red;
-				playerCollider.size = new Vector3 (0.04f, 0.04f, 1.0f);
-				
-				///Rowan Added Component References
-				animation.Action();
-				audio.Roll ();
-				cameraShake.CamShake();
-				makeDust.MakeDust();
-				// END
-			}
-
-		}
-		//Handle stuff for when the player is rolling- 
-		//at this stage, the player should continue to move in the direction that they are rolling in, while also being able to have *some* influence on their direction.
-		else
-		{
-			Vector3 force = new Vector3();
-
 			if (Input.GetKey(KeyCode.W))
 			{
 				force += new Vector3(0, 0, 1);
@@ -127,6 +91,50 @@ public class Player : MonoBehaviour
 				force += new Vector3(0, 0, -1);		
 			}
 			if (Input.GetKey(KeyCode.D))
+			{
+				force += new Vector3(1, 0, 0);		
+			}
+
+			//Normalize to ensure that the force is equal even when moving diagonally.
+			force.Normalize();
+
+			player.AddForce(force * speed);
+
+			//Here is where rolls are initiated.
+			if (Input.GetKey (KeyCode.Space) && rollTimeCurrent <= -rollTimeCooldown && (Input.GetKey(KeyCode.D)|| Input.GetKey (KeyCode.S) || Input.GetKey (KeyCode.A) || Input.GetKey(KeyCode.W)))
+			{
+				rolling = force;
+				rollTimeCurrent = rollTime;
+				playerCollider.center = new Vector3(0.0f, 0.0f, -2.0f);
+				
+				//Do some effects to show that the player is rolling.
+				myAnimation.Action();
+				feetAnimation.Action();
+				myAudio.Roll ();
+				cameraShake.CamShake();
+				makeDust.MakeDust();
+			}
+
+		}
+		//Handle stuff for when the player is rolling- 
+		//at this stage, the player should continue to move in the direction that they are rolling in, while also being able to have *some* influence on their direction.
+		else
+		{
+			Vector3 force = new Vector3();
+
+			if (Input.GetKey(KeyCode.W))//|| Input.GetKey(KeyCode.UpArrow))
+			{
+				force += new Vector3(0, 0, 1);
+			}
+			if (Input.GetKey (KeyCode.A))//|| Input.GetKey(KeyCode.LeftArrow))
+			{
+				force += new Vector3(-1, 0, 0);		
+			}
+			if (Input.GetKey (KeyCode.S))//|| Input.GetKey(KeyCode.DownArrow))
+			{
+				force += new Vector3(0, 0, -1);		
+			}
+			if (Input.GetKey(KeyCode.D))// || Input.GetKey(KeyCode.RightArrow))
 			{
 				force += new Vector3(1, 0, 0);		
 			}
@@ -156,12 +164,17 @@ public class Player : MonoBehaviour
 
 		rollTimeCurrent -= Time.deltaTime;
 
-
-		if (rollingCheck && rollTimeCurrent <= 0) 	//If the player stopped rolling this frame.
+		//If the player stopped rolling this frame.
+		if (rollingCheck && rollTimeCurrent <= 0) 	
 		{
 			rolling = Vector3.zero;
-			test.color = Color.white;
-			playerCollider.size = new Vector3 (0.16f, 0.16f, 1.0f);
+			playerCollider.center = new Vector3(0.0f, 0.0f, 0.0f);
+		}
+		
+		if (!alive)
+		{
+			myAnimation.visible = false;
+			feetAnimation.visible = false;
 		}
 	}
 

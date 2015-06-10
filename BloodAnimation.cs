@@ -1,16 +1,26 @@
-﻿using UnityEngine;
+﻿// Used for creating a blood splatter animation.
+// Created by Rowan Donaldson.
+
+using UnityEngine;
 using System.Collections;
 [RequireComponent(typeof(SpriteRenderer))]
-public class BloodAnimation : MonoBehaviour //spay blood everywhere!!!!			See Animation Controller script for further details
-{
 
+public class BloodAnimation : MonoBehaviour
+{
+	//The renderer to be used to display this animation.
 	private SpriteRenderer myRenderer;
+	//Array containing all of the sprites used for the animation.
 	public Sprite[] bloodSprites;
 
-	private float fixedTimer = 0.1f;
+	//The amount of time that each frame of the animation will be displayed.
+	public float switchTimer = 0.1f;
+	//Timer used for switching between sprites- upon reaching 0, the displayed sprite will be switched to the next one in the animation.
+	private float switchTimerCurrent;
 
-	private int spriteNumber;	// what is the number of the sprite i'm currently seeing
-	private int spriteMax; 		// get the maximum number of sprites in the list
+	//Index of the currently displayed sprite within the 'bloodSprites' array.
+	private int spriteNumber;	
+	//The length of the bloodSprites array.
+	private int spriteMax; 		
 
 	void Start()
 	{
@@ -18,7 +28,8 @@ public class BloodAnimation : MonoBehaviour //spay blood everywhere!!!!			See An
 
 		spriteMax = bloodSprites.Length;
 
-		//spriteNumber = Random.Range (0, spriteMax - 1);	Not as cool as it seems
+		switchTimerCurrent = switchTimer;
+
 		spriteNumber = 0;
 	}
 
@@ -31,12 +42,12 @@ public class BloodAnimation : MonoBehaviour //spay blood everywhere!!!!			See An
 
 	void Timer()
 	{
-		fixedTimer -= Time.fixedDeltaTime;
+		switchTimerCurrent -= Time.fixedDeltaTime;
 		
-		if (fixedTimer < 0)
+		if (switchTimerCurrent < 0)
 		{
-			spriteNumber ++;
-			fixedTimer = 0.1f;
+			++spriteNumber;
+			switchTimerCurrent = switchTimer;
 		}
 		
 		if (spriteNumber > spriteMax-1)
